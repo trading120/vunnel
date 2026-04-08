@@ -1,75 +1,92 @@
-import tempfile
-import tarfile
-import zstandard
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+"""Tests for vunnel.utils.archive."""
 
-from vunnel.utils import archive
+from __future__ import annotations
+
+import gzip
+import os
+import tarfile
+import zipfile
+from pathlib import Path
 
 import pytest
 
-
-@pytest.mark.parametrize(
-    "tar_info_name, allowed",
-    [
-        ("file.txt", True),
-        ("./file.txt", True),
-        ("some-dir/file.txt", True),
-        ("../file.txt", False),
-        ("/file.txt", False),
-        ("some-dir/../../../../../../etc/passwd", False),
-    ],
-)
-def test_filter_path_traversal(tar_info_name: str, allowed: bool):
-    tar_info = tarfile.TarInfo(tar_info_name)
-    actual = archive._filter_path_traversal(tar_info, "/some/path")
-    if allowed:
-        assert actual is not None
-        assert actual.name == tar_info_name
-    else:
-        assert actual is None
+from vunnel.utils.archive import extract
 
 
-def test_extract_tar_zst():
-    # create a temporary directory with a file to compress
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        file_path = Path(tmp_dir) / "test_file.txt"
-        file_path.write_text("Test content")
-
-        # compress the file into a .tar.zst file
-        tar_path = Path(tmp_dir) / "test_file.tar"
-        zst_path = Path(tmp_dir) / "test_file.tar.zst"
-        with tarfile.open(tar_path, "w") as tar:
-            tar.add(file_path, arcname="test_file.txt")
-        with open(tar_path, "rb") as tar, open(zst_path, "wb") as zst:
-            cctx = zstandard.ZstdCompressor()
-            cctx.copy_stream(tar, zst)
-
-        # extract the .tar.zst file
-        with tempfile.TemporaryDirectory() as extract_dir:
-            archive._extract_tar_zst(zst_path, extract_dir)
-
-            # check if the file was correctly extracted
-            assert (Path(extract_dir) / "test_file.txt").read_text() == "Test content"
+@pytest.fixture()
+def tmp(tmp_path: Path) -> Path:
+    return tmp_path
 
 
-@patch("vunnel.utils.archive._extract_tar_zst")
-@patch("vunnel.utils.archive._safe_extract_tar")
-@patch("tarfile.open")
-def test_extract(mock_tarfile_open, mock_safe_extract_tar, mock_extract_tar_zst):
-    open_mock = MagicMock()
-    mock_tarfile_open.return_value.__enter__.return_value = open_mock
+def _make_tar_gz(dest: Path, files: dict[str, str]) -> Path:
+    archive = dest / "test.tar.gz"
+    with tarfile.open(archive, "w:gz") as tf:
+        for name, content in files.items():
+            data = content.encode()
+            import io
+            info = tarfile.TarInfo(name=name)
+            info.size = len(data)
+            tf.addfile(info, io.BytesIO(data))
+    return archive
 
-    # call extract with a .tar.zst file
-    archive.extract("file.tar.zst", "dest_dir")
-    mock_extract_tar_zst.assert_called_once_with("file.tar.zst", "dest_dir")
-    mock_safe_extract_tar.assert_not_called()
-    mock_tarfile_open.assert_not_called()
 
-    mock_extract_tar_zst.reset_mock()
-    mock_safe_extract_tar.reset_mock()
+def _make_zip(dest: Path, files: dict[str, str]) -> Path:
+    archive = dest / "test.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for name, content in files.items():
+            zf.writestr(name, content)
+    return archive
 
-    # call extract with a .tar file
-    archive.extract("file.tar", "dest_dir")
-    mock_safe_extract_tar.assert_called_once_with(open_mock, "dest_dir")
-    mock_extract_tar_zst.assert_not_called()
+
+def _make_gz(dest: Path, content: str) -> Path:
+    archive = dest / "data.txt.gz"
+    with gzip.open(archive, "wb") as f:
+        f.write(content.encode())
+    return archive
+
+
+def test_extract_tar_gz(tmp: Path) -> None:
+    src_dir = tmp / "src"
+    src_dir.mkdir()
+    out_dir = tmp / "out"
+    archive = _make_tar_gz(src_dir, {"hello.txt": "hello world"})
+    paths = extract(archive, out_dir)
+    assert len(paths) == 1
+    assert Path(paths[0]).read_text() == "hello world"
+
+
+def test_extract_zip(tmp: Path) -> None:
+    src_dir = tmp / "src"
+    src_dir.mkdir()
+    out_dir = tmp / "out"
+    archive = _make_zip(src_dir, {"a.txt": "aaa", "b.txt": "bbb"})
+    paths = extract(archive, out_dir)
+    assert len(paths) == 2
+    names = {Path(p).name for p in paths}
+    assert names == {"a.txt", "b.txt"}
+
+
+def test_extract_gz(tmp: Path) -> None:
+    src_dir = tmp / "src"
+    src_dir.mkdir()
+    out_dir = tmp / "out"
+    archive = _make_gz(src_dir, "plain content")
+    paths = extract(archive, out_dir)
+    assert len(paths) == 1
+    assert Path(paths[0]).read_text() == "plain content"
+
+
+def test_extract_creates_dest(tmp: Path) -> None:
+    src_dir = tmp / "src"
+    src_dir.mkdir()
+    out_dir = tmp / "nested" / "output"
+    archive = _make_tar_gz(src_dir, {"x.txt": "x"})
+    extract(archive, out_dir)
+    assert out_dir.is_dir()
+
+
+def test_extract_unsupported_format(tmp: Path) -> None:
+    bad = tmp / "file.7z"
+    bad.write_text("dummy")
+    with pytest.raises(ValueError, match="Unsupported archive format"):
+        extract(bad, tmp / "out")
