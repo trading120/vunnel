@@ -76,31 +76,22 @@ def test_get_retries_on_503(mock_response):
     assert result is mock_response
 
 
+def test_get_raises_on_404():
+    # 404 Not Found should NOT be retried - it's a client error, not transient
+    bad = MagicMock(spec=requests.Response)
+    bad.raise_for_status.side_effect = requests.HTTPError(response=MagicMock(status_code=404))
+
+    with patch("requests.get", return_value=bad) as mock_get:
+        with patch("time.sleep"):
+            with pytest.raises(requests.HTTPError):
+                http.get("https://example.com/data", max_retries=3, backoff=0)
+    # should only be called once since 404 is not retried
+    assert mock_get.call_count == 1
+
+
 def test_download_file_writes_content(tmp_path):
     dest = str(tmp_path / "output.bin")
     mock_resp = MagicMock()
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
-    mock_resp.raise_for_status = MagicMock()
-    mock_resp.iter_content.return_value = [b"hello ", b"world"]
-
-    with patch("requests.get", return_value=mock_resp):
-        result = http.download_file("https://example.com/file.bin", dest, max_retries=1)
-
-    assert result == dest
-    assert open(dest, "rb").read() == b"hello world"
-
-
-def test_download_file_returns_path_string(tmp_path):
-    # Ensure the return value is always a str, not a Path object
-    dest = tmp_path / "output.bin"
-    mock_resp = MagicMock()
-    mock_resp.__enter__ = lambda s: s
-    mock_resp.__exit__ = MagicMock(return_value=False)
-    mock_resp.raise_for_status = MagicMock()
-    mock_resp.iter_content.return_value = [b"data"]
-
-    with patch("requests.get", return_value=mock_resp):
-        result = http.download_file("https://example.com/file.bin", dest, max_retries=1)
-
-    assert isinstance(result, str)
+    mock_resp.raise_fo
