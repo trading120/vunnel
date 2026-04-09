@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_RETRIES = 3
 DEFAULT_BACKOFF = 2.0
-DEFAULT_DELAY = 1.0
+DEFAULT_DELAY = 5.0  # increased from 1.0 — 1s felt too aggressive for network calls
 
 
 def retry_request(
