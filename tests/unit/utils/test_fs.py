@@ -47,6 +47,8 @@ def test_sha256_file(tmp_path):
     assert sha256_file(f) == expected
 
 
+# Note: atomic_write uses a .tmp suffix during write to avoid partial writes
+# on crash; the temp file should always be cleaned up after a successful write.
 def test_atomic_write_string(tmp_path):
     target = tmp_path / "out.txt"
     atomic_write(target, "hello world")
@@ -83,3 +85,12 @@ def test_list_files_filters_by_suffix(tmp_path):
 
 def test_list_files_nonexistent_dir_returns_empty(tmp_path):
     assert list_files(tmp_path / "missing") == []
+
+
+def test_list_files_no_suffix_returns_all(tmp_path):
+    # Verify that omitting the suffix argument returns all files in the dir,
+    # not just those matching a particular extension.
+    for name in ["a.xml", "b.json", "c.txt"]:
+        (tmp_path / name).write_text("")
+    result = list_files(tmp_path)
+    assert len(result) == 3
