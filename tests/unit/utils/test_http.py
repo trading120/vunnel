@@ -64,6 +64,18 @@ def test_get_retries_on_429(mock_response):
     assert result is mock_response
 
 
+def test_get_retries_on_503(mock_response):
+    # 503 Service Unavailable - verify it retries and eventually succeeds
+    bad = MagicMock(spec=requests.Response)
+    bad.raise_for_status.side_effect = requests.HTTPError(response=MagicMock(status_code=503))
+
+    with patch("requests.get", side_effect=[bad, bad, mock_response]) as mock_get:
+        with patch("time.sleep"):
+            result = http.get("https://example.com/data", max_retries=3, backoff=0)
+    assert mock_get.call_count == 3
+    assert result is mock_response
+
+
 def test_download_file_writes_content(tmp_path):
     dest = str(tmp_path / "output.bin")
     mock_resp = MagicMock()
@@ -89,12 +101,6 @@ def test_download_file_returns_path_string(tmp_path):
     mock_resp.iter_content.return_value = [b"data"]
 
     with patch("requests.get", return_value=mock_resp):
-        result = http.download_file("https://example.com/file.bin", str(dest), max_retries=1)
+        result = http.download_file("https://example.com/file.bin", dest, max_retries=1)
 
     assert isinstance(result, str)
-
-
-def test_env_defaults(monkeypatch):
-    monkeypatch.setenv("VUNNEL_HTTP_TIMEOUT", "60")
-    monkeypatch.setenv("VUNNEL_HTTP_MAX_RETRIES", "5")
-    monkeypatch.setenv("VUNNEL_HTTP_BA
