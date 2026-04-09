@@ -80,6 +80,9 @@ def test_parse_extracts_severity():
 def test_parse_handles_missing_advisory():
     result = parse_oval_string(MINIMAL_XML)
     assert len(result) == 1
+    # When no <advisory> element is present, severity should default to empty string
+    # and cves should be an empty list rather than None, so callers don't need
+    # to guard against None before iterating.
     assert result[0].severity == ""
     assert result[0].cves == []
 
