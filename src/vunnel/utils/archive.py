@@ -13,14 +13,14 @@ from pathlib import Path
 def extract(src: str | Path, dest: str | Path) -> list[str]:
     """Extract an archive to *dest* and return the list of extracted paths.
 
-    Supported formats: .tar.gz, .tgz, .tar.bz2, .tar, .zip, .gz
+    Supported formats: .tar.gz, .tgz, .tar.bz2, .tar, .zip, .gz, .tar.xz
     """
     src = Path(src)
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
 
     name = src.name.lower()
-    if name.endswith(".tar.gz") or name.endswith(".tgz") or name.endswith(".tar.bz2") or name.endswith(".tar"):
+    if name.endswith(".tar.gz") or name.endswith(".tgz") or name.endswith(".tar.bz2") or name.endswith(".tar.xz") or name.endswith(".tar"):
         return _extract_tar(src, dest)
     if name.endswith(".zip"):
         return _extract_zip(src, dest)
