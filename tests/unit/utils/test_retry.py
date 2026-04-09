@@ -57,6 +57,7 @@ def test_does_not_retry_on_unexpected_exception():
 
 
 def test_sleep_called_between_retries():
+    """Verify that sleep is called with correct delay on first retry."""
     mock_fn = MagicMock(side_effect=[TransientError(), "ok"])
     decorated = retry_request(retries=2, delay=1.0, backoff=2.0, on_exceptions=(TransientError,))(mock_fn)
 
@@ -68,6 +69,7 @@ def test_sleep_called_between_retries():
 
 
 def test_exponential_backoff():
+    """Verify exponential backoff multiplies delay correctly across retries."""
     mock_fn = MagicMock(side_effect=[TransientError(), TransientError(), "ok"])
     decorated = retry_request(retries=3, delay=1.0, backoff=3.0, on_exceptions=(TransientError,))(mock_fn)
 
