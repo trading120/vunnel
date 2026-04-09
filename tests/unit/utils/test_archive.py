@@ -19,6 +19,7 @@ def tmp(tmp_path: Path) -> Path:
 
 
 def _make_tar_gz(dest: Path, files: dict[str, str]) -> Path:
+    """Helper to create a tar.gz archive for testing."""
     archive = dest / "test.tar.gz"
     with tarfile.open(archive, "w:gz") as tf:
         for name, content in files.items():
@@ -31,6 +32,7 @@ def _make_tar_gz(dest: Path, files: dict[str, str]) -> Path:
 
 
 def _make_zip(dest: Path, files: dict[str, str]) -> Path:
+    """Helper to create a zip archive for testing."""
     archive = dest / "test.zip"
     with zipfile.ZipFile(archive, "w") as zf:
         for name, content in files.items():
@@ -39,6 +41,7 @@ def _make_zip(dest: Path, files: dict[str, str]) -> Path:
 
 
 def _make_gz(dest: Path, content: str) -> Path:
+    """Helper to create a gzip compressed file for testing."""
     archive = dest / "data.txt.gz"
     with gzip.open(archive, "wb") as f:
         f.write(content.encode())
