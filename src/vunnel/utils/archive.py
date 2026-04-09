@@ -10,10 +10,15 @@ import zipfile
 from pathlib import Path
 
 
-def extract(src: str | Path, dest: str | Path) -> list[str]:
+def extract(src: str | Path, dest: str | Path, preserve_permissions: bool = True) -> list[str]:
     """Extract an archive to *dest* and return the list of extracted paths.
 
     Supported formats: .tar.gz, .tgz, .tar.bz2, .tar, .zip, .gz, .tar.xz
+    
+    Args:
+        src: Source archive path
+        dest: Destination directory
+        preserve_permissions: Whether to preserve file permissions (default: True)
     """
     src = Path(src)
     dest = Path(dest)
