@@ -16,6 +16,15 @@ OVAL_NS = {
 
 @dataclass
 class OvalDefinition:
+    """Represents a parsed OVAL security definition.
+    
+    Attributes:
+        id: Unique OVAL definition identifier
+        title: Human-readable title of the vulnerability
+        severity: Severity level (e.g., Critical, Important, Moderate, Low)
+        cves: List of associated CVE identifiers
+        affected_packages: List of package names affected by this vulnerability
+    """
     id: str
     title: str
     severity: str
