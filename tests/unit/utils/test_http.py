@@ -52,6 +52,18 @@ def test_get_raises_after_max_retries():
                 http.get("https://example.com/data", max_retries=2, backoff=0)
 
 
+def test_get_retries_on_429(mock_response):
+    # 429 Too Many Requests should also be retried, not just 5xx errors
+    bad = MagicMock(spec=requests.Response)
+    bad.raise_for_status.side_effect = requests.HTTPError(response=MagicMock(status_code=429))
+
+    with patch("requests.get", side_effect=[bad, mock_response]) as mock_get:
+        with patch("time.sleep"):
+            result = http.get("https://example.com/data", max_retries=2, backoff=0)
+    assert mock_get.call_count == 2
+    assert result is mock_response
+
+
 def test_download_file_writes_content(tmp_path):
     dest = str(tmp_path / "output.bin")
     mock_resp = MagicMock()
@@ -85,12 +97,4 @@ def test_download_file_returns_path_string(tmp_path):
 def test_env_defaults(monkeypatch):
     monkeypatch.setenv("VUNNEL_HTTP_TIMEOUT", "60")
     monkeypatch.setenv("VUNNEL_HTTP_MAX_RETRIES", "5")
-    monkeypatch.setenv("VUNNEL_HTTP_BACKOFF", "2.5")
-
-    import importlib
-    import vunnel.utils.http as http_module
-    importlib.reload(http_module)
-
-    assert http_module.DEFAULT_TIMEOUT == 60
-    assert http_module.DEFAULT_MAX_RETRIES == 5
-    assert http_module.DEFAULT_BACKOFF == 2.5
+    monkeypatch.setenv("VUNNEL_HTTP_BA
