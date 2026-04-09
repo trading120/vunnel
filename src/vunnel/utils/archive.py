@@ -45,7 +45,8 @@ def _extract_tar(src: Path, dest: Path) -> list[str]:
             if not str(member_path).startswith(dest_resolved):
                 raise ValueError(f"Unsafe path in archive: {member.name}")
         tf.extractall(dest)  # noqa: S202
-        extracted = [str(dest / m.name) for m in members if not m.isdir()]
+        # Only return files, not directories or symlinks
+        extracted = [str(dest / m.name) for m in members if m.isfile()]
     return extracted
 
 
