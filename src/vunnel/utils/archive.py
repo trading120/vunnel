@@ -11,7 +11,10 @@ from pathlib import Path
 
 
 def extract(src: str | Path, dest: str | Path) -> list[str]:
-    """Extract an archive to *dest* and return the list of extracted paths."""
+    """Extract an archive to *dest* and return the list of extracted paths.
+
+    Supported formats: .tar.gz, .tgz, .tar.bz2, .tar, .zip, .gz
+    """
     src = Path(src)
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
@@ -30,10 +33,11 @@ def _extract_tar(src: Path, dest: Path) -> list[str]:
     extracted: list[str] = []
     with tarfile.open(src) as tf:
         members = tf.getmembers()
+        dest_resolved = str(dest.resolve())
         for member in members:
-            # Guard against path traversal
+            # Guard against path traversal attacks
             member_path = (dest / member.name).resolve()
-            if not str(member_path).startswith(str(dest.resolve())):
+            if not str(member_path).startswith(dest_resolved):
                 raise ValueError(f"Unsafe path in archive: {member.name}")
         tf.extractall(dest)  # noqa: S202
         extracted = [str(dest / m.name) for m in members if not m.isdir()]
@@ -43,9 +47,10 @@ def _extract_tar(src: Path, dest: Path) -> list[str]:
 def _extract_zip(src: Path, dest: Path) -> list[str]:
     extracted: list[str] = []
     with zipfile.ZipFile(src) as zf:
+        dest_resolved = str(dest.resolve())
         for info in zf.infolist():
             target = (dest / info.filename).resolve()
-            if not str(target).startswith(str(dest.resolve())):
+            if not str(target).startswith(dest_resolved):
                 raise ValueError(f"Unsafe path in archive: {info.filename}")
         zf.extractall(dest)
         extracted = [
