@@ -67,6 +67,21 @@ def test_download_file_writes_content(tmp_path):
     assert open(dest, "rb").read() == b"hello world"
 
 
+def test_download_file_returns_path_string(tmp_path):
+    # Ensure the return value is always a str, not a Path object
+    dest = tmp_path / "output.bin"
+    mock_resp = MagicMock()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__ = MagicMock(return_value=False)
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.iter_content.return_value = [b"data"]
+
+    with patch("requests.get", return_value=mock_resp):
+        result = http.download_file("https://example.com/file.bin", str(dest), max_retries=1)
+
+    assert isinstance(result, str)
+
+
 def test_env_defaults(monkeypatch):
     monkeypatch.setenv("VUNNEL_HTTP_TIMEOUT", "60")
     monkeypatch.setenv("VUNNEL_HTTP_MAX_RETRIES", "5")
