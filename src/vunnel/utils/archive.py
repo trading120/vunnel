@@ -59,8 +59,12 @@ def _extract_zip(src: Path, dest: Path) -> list[str]:
             if not str(target).startswith(dest_resolved):
                 raise ValueError(f"Unsafe path in archive: {info.filename}")
         zf.extractall(dest)
+        # Note: filter out directories and also skip __MACOSX metadata entries
+        # that macOS adds to zip files — these are not useful and clutter the output.
         extracted = [
-            str(dest / i.filename) for i in zf.infolist() if not i.is_dir()
+            str(dest / i.filename)
+            for i in zf.infolist()
+            if not i.is_dir() and not i.filename.startswith("__MACOSX/")
         ]
     return extracted
 
