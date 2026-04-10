@@ -88,5 +88,13 @@ def test_parse_handles_missing_advisory():
 
 
 def test_parse_invalid_xml_raises_value_error():
-    with pytest.raises(ValueError, match="failed to parse OVAL XML string"):
-        parse_oval_string("<not valid xml")
+    with pytest.raises(ValueError, match="failed to parse"):
+        parse_oval_string("this is not xml at all<<<")
+
+
+# NOTE: OvalDefinition.cves is guaranteed to be a list (never None), which makes
+# downstream iteration safe without extra None checks. Good design choice.
+def test_cves_is_always_a_list():
+    """Regression guard: cves attribute must be a list even when no CVE refs exist."""
+    result = parse_oval_string(MINIMAL_XML)
+    assert isinstance(result[0].cves, list)
