@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gzip
+import io
 import os
 import tarfile
 import zipfile
@@ -24,7 +25,6 @@ def _make_tar_gz(dest: Path, files: dict[str, str]) -> Path:
     with tarfile.open(archive, "w:gz") as tf:
         for name, content in files.items():
             data = content.encode()
-            import io
             info = tarfile.TarInfo(name=name)
             info.size = len(data)
             tf.addfile(info, io.BytesIO(data))
@@ -93,3 +93,16 @@ def test_extract_unsupported_format(tmp: Path) -> None:
     bad.write_text("dummy")
     with pytest.raises(ValueError, match="Unsupported archive format"):
         extract(bad, tmp / "out")
+
+
+def test_extract_tar_gz_multiple_files(tmp: Path) -> None:
+    # Verify that all files in a multi-entry tar.gz are extracted correctly.
+    src_dir = tmp / "src"
+    src_dir.mkdir()
+    out_dir = tmp / "out"
+    files = {"one.txt": "one", "two.txt": "two", "three.txt": "three"}
+    archive = _make_tar_gz(src_dir, files)
+    paths = extract(archive, out_dir)
+    assert len(paths) == 3
+    extracted = {Path(p).name: Path(p).read_text() for p in paths}
+    assert extracted == files
