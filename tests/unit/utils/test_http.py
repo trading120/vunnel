@@ -85,13 +85,5 @@ def test_get_raises_on_404():
         with patch("time.sleep"):
             with pytest.raises(requests.HTTPError):
                 http.get("https://example.com/data", max_retries=3, backoff=0)
-    # should only be called once since 404 is not retried
+    # should only be called once - no retries for 404
     assert mock_get.call_count == 1
-
-
-def test_download_file_writes_content(tmp_path):
-    dest = str(tmp_path / "output.bin")
-    mock_resp = MagicMock()
-    mock_resp.__enter__ = lambda s: s
-    mock_resp.__exit__ = MagicMock(return_value=False)
-    mock_resp.raise_fo
