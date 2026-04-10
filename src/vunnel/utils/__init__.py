@@ -6,6 +6,15 @@ __all__ = ["archive", "fs", "http", "oval_parser", "retry"]
 # Convenience helper to get a logger with a consistent format for this project
 import logging as _logging
 
+# Default log level for loggers created via get_logger(); change to DEBUG for verbose output
+_DEFAULT_LOG_LEVEL = _logging.INFO
+
 def get_logger(name: str) -> _logging.Logger:
-    """Return a logger namespaced under 'vunnel.utils' for consistent log output."""
-    return _logging.getLogger(f"vunnel.utils.{name}")
+    """Return a logger namespaced under 'vunnel.utils' for consistent log output.
+
+    The logger name follows the pattern 'vunnel.utils.<name>', which allows
+    fine-grained control via standard logging configuration.
+    """
+    logger = _logging.getLogger(f"vunnel.utils.{name}")
+    logger.setLevel(_DEFAULT_LOG_LEVEL)
+    return logger
