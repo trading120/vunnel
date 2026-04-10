@@ -53,6 +53,13 @@ def parse_oval_string(xml: str) -> list[OvalDefinition]:
     return _extract_definitions(root)
 
 
+def _detect_namespace(root: ET.Element) -> str:
+    """Extract the namespace prefix from the root element tag, e.g. '{http://...}'."""
+    if root.tag.startswith("{"):
+        return root.tag[:root.tag.index("}") + 1]
+    return ""
+
+
 def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
     definitions: list[OvalDefinition] = []
     ns = _detect_namespace(root)
@@ -78,6 +85,7 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
             if ref.get("source", "").upper() == "CVE"
         ]
 
+        # filter out empty package names to avoid polluting results
         packages = [
             pkg.get("name", "")
             for pkg in defn.iter(f"{ns}rpminfo_object")
@@ -94,13 +102,4 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
             )
         )
 
-    logger.debug(f"extracted {len(definitions)} definitions")
     return definitions
-
-
-def _detect_namespace(root: ET.Element) -> str:
-    tag = root.tag
-    if tag.startswith("{"):
-        ns_uri = tag[1: tag.index("}")]
-        return f"{{{ns_uri}}}"
-    return ""
