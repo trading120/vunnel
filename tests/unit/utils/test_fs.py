@@ -47,6 +47,16 @@ def test_sha256_file(tmp_path):
     assert sha256_file(f) == expected
 
 
+def test_sha256_file_empty(tmp_path):
+    # Personal note: make sure sha256 of an empty file is handled correctly
+    # rather than raising an error or returning None.
+    import hashlib
+    f = tmp_path / "empty.bin"
+    f.write_bytes(b"")
+    expected = hashlib.sha256(b"").hexdigest()
+    assert sha256_file(f) == expected
+
+
 # Note: atomic_write uses a .tmp suffix during write to avoid partial writes
 # on crash; the temp file should always be cleaned up after a successful write.
 def test_atomic_write_string(tmp_path):
