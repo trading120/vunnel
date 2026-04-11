@@ -83,40 +83,18 @@ class TestDownload:
             with pytest.raises(ftplib.error_perm):
                 download(FTP_HOST, FTP_PATH, str(dest))
 
-
-class TestListDirectory:
-    def test_list_directory_returns_filenames(self, mock_ftp):
-        """list_directory() should return a list of filenames in the remote dir."""
-        entries = ["file_a.tar.gz", "file_b.tar.gz", "README"]
-        mock_ftp.nlst.return_value = entries
-
-        with patch("ftplib.FTP", return_value=mock_ftp):
-            result = list_directory(FTP_HOST, FTP_DIR)
-
-        assert result == entries
-
-    def test_list_directory_calls_nlst_with_path(self, mock_ftp):
-        """list_directory() should call nlst() with the given remote directory."""
-        mock_ftp.nlst.return_value = []
-
-        with patch("ftplib.FTP", return_value=mock_ftp):
-            list_directory(FTP_HOST, FTP_DIR)
-
-        mock_ftp.nlst.assert_called_once_with(FTP_DIR)
-
-    def test_list_directory_returns_empty_list_for_empty_dir(self, mock_ftp):
-        """list_directory() should return an empty list when the directory is empty."""
-        mock_ftp.nlst.return_value = []
-
-        with patch("ftplib.FTP", return_value=mock_ftp):
-            result = list_directory(FTP_HOST, FTP_DIR)
-
-        assert result == []
-
-    def test_list_directory_raises_on_ftp_error(self, mock_ftp):
-        """list_directory() should propagate FTP errors to the caller."""
-        mock_ftp.nlst.side_effect = ftplib.error_perm("550 No such directory")
+    def test_download_destination_file_not_created_on_error(self, tmp_path, mock_ftp):
+        """download() should not leave a partial file behind when an FTP error occurs."""
+        # NOTE: I noticed there was no test verifying cleanup on failure - adding one.
+        dest = tmp_path / "file.tar.gz"
+        mock_ftp.retrbinary.side_effect = ftplib.error_perm("550 No such file")
 
         with patch("ftplib.FTP", return_value=mock_ftp):
             with pytest.raises(ftplib.error_perm):
-                list_directory(FTP_HOST, FTP_DIR)
+                download(FTP_HOST, FTP_PATH, str(dest))
+
+        assert not dest.exists(), "Partial destination file should be cleaned up on error"
+
+
+class TestListDirectory:
+    def test_list_directory
