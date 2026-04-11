@@ -77,6 +77,9 @@ def verify_sha256(path: str | os.PathLike, expected: str) -> bool:
 
     Returns:
         ``True`` if the digest matches, ``False`` otherwise.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
     """
     expected = expected.lower().removeprefix("sha256:")
     actual = sha256_file(path)
