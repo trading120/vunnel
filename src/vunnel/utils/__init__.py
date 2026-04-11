@@ -7,7 +7,9 @@ __all__ = ["archive", "fs", "http", "oval_parser", "retry"]
 import logging as _logging
 
 # Default log level for loggers created via get_logger(); change to DEBUG for verbose output
-_DEFAULT_LOG_LEVEL = _logging.INFO
+# NOTE: Changed to DEBUG for my local dev workflow - easier to trace issues without
+# having to reconfigure logging everywhere.
+_DEFAULT_LOG_LEVEL = _logging.DEBUG
 
 def get_logger(name: str) -> _logging.Logger:
     """Return a logger namespaced under 'vunnel.utils' for consistent log output.
