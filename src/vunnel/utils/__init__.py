@@ -16,6 +16,11 @@ def get_logger(name: str) -> _logging.Logger:
 
     The logger name follows the pattern 'vunnel.utils.<name>', which allows
     fine-grained control via standard logging configuration.
+
+    Args:
+        name: A short identifier for the module or component requesting the logger.
+              For example, get_logger('mymodule') returns a logger named
+              'vunnel.utils.mymodule'.
     """
     logger = _logging.getLogger(f"vunnel.utils.{name}")
     logger.setLevel(_DEFAULT_LOG_LEVEL)
