@@ -16,7 +16,7 @@ def download(
     dest: str,
     user: str = "anonymous",
     password: str = "anonymous@",
-    timeout: int = 30,
+    timeout: int = 60,
     retries: int = 3,
 ) -> str:
     """Download a file from an FTP server.
@@ -27,7 +27,7 @@ def download(
         dest: Local destination path (file or directory).
         user: FTP username (default: anonymous).
         password: FTP password (default: anonymous@).
-        timeout: Connection timeout in seconds.
+        timeout: Connection timeout in seconds (default: 60).
         retries: Number of retry attempts on transient errors.
 
     Returns:
@@ -69,7 +69,7 @@ def _download(host: str, path: str, dest: str, user: str, password: str, timeout
             ftp.retrbinary(f"RETR {path}", f.write)
 
 
-def list_directory(host: str, path: str = "/", user: str = "anonymous", password: str = "anonymous@", timeout: int = 30) -> list[str]:
+def list_directory(host: str, path: str = "/", user: str = "anonymous", password: str = "anonymous@", timeout: int = 60) -> list[str]:
     """List files in a remote FTP directory.
 
     Args:
@@ -77,7 +77,7 @@ def list_directory(host: str, path: str = "/", user: str = "anonymous", password
         path: Remote directory path.
         user: FTP username.
         password: FTP password.
-        timeout: Connection timeout in seconds.
+        timeout: Connection timeout in seconds (default: 60).
 
     Returns:
         A list of filenames in the remote directory.
