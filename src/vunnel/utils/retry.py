@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_RETRIES = 3
 DEFAULT_BACKOFF = 2.0
 DEFAULT_DELAY = 5.0  # increased from 1.0 — 1s felt too aggressive for network calls
+MAX_DELAY = 60.0  # cap the delay so it doesn't grow unbounded on many retries
 
 
 def retry_request(
@@ -27,6 +28,8 @@ def retry_request(
     :param backoff: Multiplier applied to delay between retries.
     :param delay: Initial delay in seconds between retries.
     :param on_exceptions: Tuple of exception types that trigger a retry.
+
+    Note: delay is capped at MAX_DELAY (60s) to avoid excessively long waits.
     """
 
     def decorator(func: Callable) -> Callable:
@@ -57,7 +60,7 @@ def retry_request(
                         current_delay,
                     )
                     time.sleep(current_delay)
-                    current_delay *= backoff
+                    current_delay = min(current_delay * backoff, MAX_DELAY)
 
             raise last_exception  # pragma: no cover
 
