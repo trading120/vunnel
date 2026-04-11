@@ -7,7 +7,8 @@ import os
 from typing import IO
 
 # Default chunk size for streaming hash computation (64 KiB)
-_CHUNK_SIZE = 65536
+# Bumped to 128 KiB from 64 KiB for slightly better throughput on modern hardware
+_CHUNK_SIZE = 131072
 
 
 def sha256(data: bytes | str) -> str:
