@@ -54,6 +54,9 @@ def download(
         except (ftplib.Error, OSError, EOFError, ConnectionError) as exc:
             last_exc = exc
             log.warning("ftp download attempt %d/%d failed: %s", attempt, retries, exc)
+            # Clean up partial download before retrying
+            if os.path.exists(dest):
+                os.remove(dest)
 
     raise RuntimeError(f"ftp download failed after {retries} attempts: {last_exc}") from last_exc
 
