@@ -103,6 +103,11 @@ def test_extract_tar_gz_multiple_files(tmp: Path) -> None:
     files = {"one.txt": "one", "two.txt": "two", "three.txt": "three"}
     archive = _make_tar_gz(src_dir, files)
     paths = extract(archive, out_dir)
-    assert len(paths) == 3
-    extracted = {Path(p).name: Path(p).read_text() for p in paths}
-    assert extracted == files
+    # should extract exactly as many files as were put in
+    assert len(paths) == len(files)
+    extracted_names = {Path(p).name for p in paths}
+    assert extracted_names == set(files.keys())
+    # verify each file's content matches what was written
+    for path in paths:
+        name = Path(path).name
+        assert Path(path).read_text() == files[name]
