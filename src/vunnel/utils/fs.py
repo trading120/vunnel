@@ -30,13 +30,12 @@ def safe_remove(path: str | Path) -> bool:
     return True
 
 
-def sha256_file(path: str | Path, chunk_size: int = 65536) -> str:
+def sha256_file(path: str | Path, chunk_size: int = 131072) -> str:
     """Return the hex SHA-256 digest of the file at *path*.
 
     Args:
         path: Path to the file to hash
-        chunk_size: Size of chunks to read (default 64KB; reduced from 128KB to
-                    avoid excessive memory pressure on large vulnerability DBs)
+        chunk_size: Size of chunks to read (default 128KB)
     """
     h = hashlib.sha256()
     with open(path, "rb") as fh:
