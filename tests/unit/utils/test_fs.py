@@ -78,6 +78,15 @@ def test_atomic_write_creates_parent_dirs(tmp_path):
     assert target.read_text() == "content"
 
 
+def test_atomic_write_overwrites_existing(tmp_path):
+    # Personal note: I want to be explicit that atomic_write should clobber
+    # any pre-existing file at the target path, not append or fail.
+    target = tmp_path / "existing.txt"
+    target.write_text("old content")
+    atomic_write(target, "new content")
+    assert target.read_text() == "new content"
+
+
 def test_list_files_returns_sorted(tmp_path):
     for name in ["c.xml", "a.xml", "b.xml"]:
         (tmp_path / name).write_text("")
