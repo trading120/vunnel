@@ -85,7 +85,6 @@ class TestDownload:
 
     def test_download_destination_file_not_created_on_error(self, tmp_path, mock_ftp):
         """download() should not leave a partial file behind when an FTP error occurs."""
-        # NOTE: I noticed there was no test verifying cleanup on failure - adding one.
         dest = tmp_path / "file.tar.gz"
         mock_ftp.retrbinary.side_effect = ftplib.error_perm("550 No such file")
 
@@ -93,8 +92,5 @@ class TestDownload:
             with pytest.raises(ftplib.error_perm):
                 download(FTP_HOST, FTP_PATH, str(dest))
 
-        assert not dest.exists(), "Partial destination file should be cleaned up on error"
-
-
-class TestListDirectory:
-    def test_list_directory
+        # NOTE: partial/empty files left on error can cause silent failures on retry
+        assert not dest.exists(), "No partial file should remain after a failed download"
