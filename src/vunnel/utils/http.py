@@ -12,8 +12,8 @@ from vunnel.utils.retry import retry_request
 
 log = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = int(os.environ.get("VUNNEL_HTTP_TIMEOUT", "60"))  # increased from 30s; 30s was too short for slow mirrors
-DEFAULT_MAX_RETRIES = int(os.environ.get("VUNNEL_HTTP_MAX_RETRIES", "3"))
+DEFAULT_TIMEOUT = int(os.environ.get("VUNNEL_HTTP_TIMEOUT", "90"))  # increased to 90s for very slow mirrors
+DEFAULT_MAX_RETRIES = int(os.environ.get("VUNNEL_HTTP_MAX_RETRIES", "5"))  # bumped from 3; transient failures are common
 
 # chunk size used when streaming file downloads
 _DOWNLOAD_CHUNK_SIZE = 16384  # 16 KiB (doubled from original 8192)
