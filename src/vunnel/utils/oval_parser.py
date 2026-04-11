@@ -86,10 +86,11 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
         ]
 
         # filter out empty package names to avoid polluting results
+        # also skip packages with whitespace-only names, which can sneak in from malformed XML
         packages = [
-            pkg.get("name", "")
+            name
             for pkg in defn.iter(f"{ns}rpminfo_object")
-            if pkg.get("name")
+            if (name := pkg.get("name", "").strip())
         ]
 
         definitions.append(
@@ -102,4 +103,5 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
             )
         )
 
+    logger.debug(f"extracted {len(definitions)} OVAL definitions")
     return definitions
