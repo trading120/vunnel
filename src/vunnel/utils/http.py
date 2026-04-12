@@ -20,6 +20,12 @@ DEFAULT_MAX_RETRIES = int(os.environ.get("VUNNEL_HTTP_MAX_RETRIES", "5"))  # bum
 # with negligible extra memory cost on any modern system
 _DOWNLOAD_CHUNK_SIZE = 131072  # 128 KiB
 
+# default headers sent with every request
+# including a User-Agent makes it easier to identify vunnel traffic in server logs
+_DEFAULT_HEADERS = {
+    "User-Agent": f"vunnel/{os.environ.get('VUNNEL_VERSION', 'dev')}",
+}
+
 
 def get(url: str, timeout: int = DEFAULT_TIMEOUT, retries: int = DEFAULT_MAX_RETRIES, **kwargs: Any) -> requests.Response:
     """Perform a GET request, retrying on transient failures."""
@@ -28,7 +34,8 @@ def get(url: str, timeout: int = DEFAULT_TIMEOUT, retries: int = DEFAULT_MAX_RET
 
 def _get(url: str, timeout: int = DEFAULT_TIMEOUT, **kwargs: Any) -> requests.Response:
     log.debug("GET %s", url)
-    resp = requests.get(url, timeout=timeout, **kwargs)
+    headers = {**_DEFAULT_HEADERS, **kwargs.pop("headers", {})}
+    resp = requests.get(url, timeout=timeout, headers=headers, **kwargs)
     resp.raise_for_status()
     return resp
 
@@ -52,7 +59,8 @@ def download_file(
 
 def _download(url: str, dest: str, timeout: int = DEFAULT_TIMEOUT, **kwargs: Any) -> str:
     log.debug("Downloading %s -> %s", url, dest)
-    with requests.get(url, stream=True, timeout=timeout, **kwargs) as resp:
+    headers = {**_DEFAULT_HEADERS, **kwargs.pop("headers", {})}
+    with requests.get(url, stream=True, timeout=timeout, headers=headers, **kwargs) as resp:
         resp.raise_for_status()
         with open(dest, "wb") as fh:
             for chunk in resp.iter_content(chunk_size=_DOWNLOAD_CHUNK_SIZE):
