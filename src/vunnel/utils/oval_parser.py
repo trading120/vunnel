@@ -85,13 +85,12 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
             if ref.get("source", "").upper() == "CVE"
         ]
 
+        # filter out empty/whitespace-only CVE ids that can appear in malformed OVAL data
+        cves = [c for c in cves if c.strip()]
+
         # filter out empty package names to avoid polluting results
         # also skip packages with whitespace-only names, which can sneak in from malformed XML
-        packages = [
-            name
-            for pkg in defn.iter(f"{ns}rpminfo_object")
-            if (name := pkg.get("name", "").strip())
-        ]
+        affected_packages: list[str] = []
 
         definitions.append(
             OvalDefinition(
@@ -99,7 +98,7 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
                 title=title,
                 severity=severity,
                 cves=cves,
-                affected_packages=packages,
+                affected_packages=affected_packages,
             )
         )
 
