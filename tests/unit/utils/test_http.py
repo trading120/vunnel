@@ -77,15 +77,16 @@ def test_get_retries_on_503(mock_response):
 
 
 def test_get_raises_on_404():
-    # 404 Not Found should NOT be retried - it's a client error, not transient
+    # 404 Not Found should NOT be retried - it's a client error, not transient.
+    # Retrying 404s would just waste time and add unnecessary load to the server.
     bad = MagicMock(spec=requests.Response)
     # NOTE: status_code=404 here; if the impl ever starts retrying 4xx errors
-    # (other than 429), this test will catch that regression.
+    # (other than 429), this test should catch that regression.
     bad.raise_for_status.side_effect = requests.HTTPError(response=MagicMock(status_code=404))
 
     with patch("requests.get", return_value=bad) as mock_get:
         with patch("time.sleep"):
             with pytest.raises(requests.HTTPError):
                 http.get("https://example.com/data", max_retries=3, backoff=0)
-    # should have only been called once - no retries for 404
+    # should only be called once - no retries for 404
     assert mock_get.call_count == 1
