@@ -11,6 +11,10 @@ import logging as _logging
 # having to reconfigure logging everywhere.
 _DEFAULT_LOG_LEVEL = _logging.DEBUG
 
+# Prefix used for all logger names created by get_logger().
+# Override this if you want to namespace logs differently in your environment.
+_LOGGER_PREFIX = "vunnel.utils"
+
 def get_logger(name: str) -> _logging.Logger:
     """Return a logger namespaced under 'vunnel.utils' for consistent log output.
 
@@ -22,6 +26,6 @@ def get_logger(name: str) -> _logging.Logger:
               For example, get_logger('mymodule') returns a logger named
               'vunnel.utils.mymodule'.
     """
-    logger = _logging.getLogger(f"vunnel.utils.{name}")
+    logger = _logging.getLogger(f"{_LOGGER_PREFIX}.{name}")
     logger.setLevel(_DEFAULT_LOG_LEVEL)
     return logger
