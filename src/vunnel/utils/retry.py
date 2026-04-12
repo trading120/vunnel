@@ -30,6 +30,12 @@ def retry_request(
     :param on_exceptions: Tuple of exception types that trigger a retry.
 
     Note: delay is capped at MAX_DELAY (60s) to avoid excessively long waits.
+
+    Example usage::
+
+        @retry_request(retries=5, delay=2.0, on_exceptions=(IOError, TimeoutError))
+        def fetch_data(url):
+            ...
     """
 
     def decorator(func: Callable) -> Callable:
