@@ -72,7 +72,13 @@ def _download(host: str, path: str, dest: str, user: str, password: str, timeout
             ftp.retrbinary(f"RETR {path}", f.write)
 
 
-def list_directory(host: str, path: str = "/", user: str = "anonymous", password: str = "anonymous@", timeout: int = 120) -> list[str]:
+def list_directory(
+    host: str,
+    path: str = "/",
+    user: str = "anonymous",
+    password: str = "anonymous@",
+    timeout: int = 120,
+) -> list[str]:
     """List files in a remote FTP directory.
 
     Args:
@@ -90,4 +96,8 @@ def list_directory(host: str, path: str = "/", user: str = "anonymous", password
         ftp.connect(host)
         ftp.login(user=user, passwd=password)
         ftp.set_pasv(True)
-        return ftp.nlst(path)
+        # Use nlst() to get a plain list of names; mlsd() would give more detail
+        # but isn't supported by all servers.
+        entries = ftp.nlst(path)
+        # Return only the base filenames, not the full paths
+        return [os.path.basename(e) for e in entries]
