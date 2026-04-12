@@ -80,8 +80,11 @@ def verify_sha256(path: str | os.PathLike, expected: str) -> bool:
 
     Raises:
         FileNotFoundError: If *path* does not exist.
+        ValueError: If *expected* is empty after stripping the prefix.
     """
     expected = expected.lower().removeprefix("sha256:")
+    if not expected:
+        raise ValueError("expected digest must not be empty")
     actual = sha256_file(path)
     return actual == expected
 
