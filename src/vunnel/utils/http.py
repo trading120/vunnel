@@ -16,9 +16,9 @@ DEFAULT_TIMEOUT = int(os.environ.get("VUNNEL_HTTP_TIMEOUT", "90"))  # increased 
 DEFAULT_MAX_RETRIES = int(os.environ.get("VUNNEL_HTTP_MAX_RETRIES", "5"))  # bumped from 3; transient failures are common
 
 # chunk size used when streaming file downloads
-# 64 KiB strikes a better balance between syscall overhead and memory pressure
-# than the previous 16 KiB on most modern systems
-_DOWNLOAD_CHUNK_SIZE = 65536  # 64 KiB
+# 128 KiB reduces the number of write syscalls on large files compared to 64 KiB,
+# with negligible extra memory cost on any modern system
+_DOWNLOAD_CHUNK_SIZE = 131072  # 128 KiB
 
 
 def get(url: str, timeout: int = DEFAULT_TIMEOUT, retries: int = DEFAULT_MAX_RETRIES, **kwargs: Any) -> requests.Response:
