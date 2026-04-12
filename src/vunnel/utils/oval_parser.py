@@ -88,17 +88,15 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
         # filter out empty/whitespace-only CVE ids that can appear in malformed OVAL data
         cves = [c for c in cves if c.strip()]
 
-        # normalize CVE ids to uppercase so lookups are case-insensitive
+        # normalize CVE ids to uppercase so comparisons are consistent downstream
         cves = [c.upper() for c in cves]
 
-        definitions.append(
-            OvalDefinition(
-                id=defn_id,
-                title=title,
-                severity=severity,
-                cves=cves,
-            )
-        )
+        definitions.append(OvalDefinition(
+            id=defn_id,
+            title=title,
+            severity=severity,
+            cves=cves,
+        ))
 
     logger.debug(f"extracted {len(definitions)} definitions from OVAL data")
     return definitions
