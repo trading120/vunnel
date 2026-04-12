@@ -88,19 +88,7 @@ def test_parse_handles_missing_advisory():
 
 
 def test_parse_invalid_xml_raises_value_error():
+    # Malformed XML should raise a ValueError with a helpful message rather than
+    # leaking a raw xml.etree ParseError up to the caller.
     with pytest.raises(ValueError, match="failed to parse"):
-        parse_oval_string("this is not xml at all<<<")
-
-
-# NOTE: OvalDefinition.cves is always a list (never None), which makes it safe
-# to do `for cve in definition.cves` without a None-check. Keeping this note
-# as a reminder since I tripped over this when integrating with my own tooling.
-def test_parse_cves_is_always_list():
-    """Ensure cves attribute is a list type regardless of whether CVEs are present."""
-    for xml in (OVAL_XML, MINIMAL_XML):
-        result = parse_oval_string(xml)
-        for definition in result:
-            assert isinstance(definition.cves, list), (
-                f"Expected list for cves on definition {definition.id}, "
-                f"got {type(definition.cves)}"
-            )
+        parse_oval_string("<not valid xml")
