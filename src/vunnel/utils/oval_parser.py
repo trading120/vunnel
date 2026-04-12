@@ -88,9 +88,8 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
         # filter out empty/whitespace-only CVE ids that can appear in malformed OVAL data
         cves = [c for c in cves if c.strip()]
 
-        # filter out empty package names to avoid polluting results
-        # also skip packages with whitespace-only names, which can sneak in from malformed XML
-        affected_packages: list[str] = []
+        # normalize CVE ids to uppercase so lookups are case-insensitive
+        cves = [c.upper() for c in cves]
 
         definitions.append(
             OvalDefinition(
@@ -98,9 +97,8 @@ def _extract_definitions(root: ET.Element) -> list[OvalDefinition]:
                 title=title,
                 severity=severity,
                 cves=cves,
-                affected_packages=affected_packages,
             )
         )
 
-    logger.debug(f"extracted {len(definitions)} OVAL definitions")
+    logger.debug(f"extracted {len(definitions)} definitions from OVAL data")
     return definitions
