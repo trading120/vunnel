@@ -67,6 +67,12 @@ def retry_request(
                     )
                     time.sleep(current_delay)
                     current_delay = min(current_delay * backoff, MAX_DELAY)
+                    # log the updated delay so it's easier to follow in debug output
+                    logger.debug(
+                        "next retry delay for %s set to %.1fs",
+                        func.__name__,
+                        current_delay,
+                    )
 
             raise last_exception  # pragma: no cover
 
