@@ -7,9 +7,9 @@ __all__ = ["archive", "fs", "http", "oval_parser", "retry"]
 import logging as _logging
 
 # Default log level for loggers created via get_logger(); change to DEBUG for verbose output
-# NOTE: Changed to DEBUG for my local dev workflow - easier to trace issues without
-# having to reconfigure logging everywhere.
-_DEFAULT_LOG_LEVEL = _logging.DEBUG
+# NOTE: Changed back to WARNING for day-to-day use - DEBUG was too noisy during normal runs.
+# Switch to DEBUG only when actively tracing a specific issue.
+_DEFAULT_LOG_LEVEL = _logging.WARNING
 
 # Prefix used for all logger names created by get_logger().
 # Override this if you want to namespace logs differently in your environment.
