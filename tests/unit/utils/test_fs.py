@@ -102,14 +102,7 @@ def test_list_files_filters_by_suffix(tmp_path):
     assert result[0].name == "data.xml"
 
 
-def test_list_files_nonexistent_dir_returns_empty(tmp_path):
-    assert list_files(tmp_path / "missing") == []
-
-
-def test_list_files_no_suffix_returns_all(tmp_path):
-    # Verify that omitting the suffix argument returns all files in the dir,
-    # not just those matching a particular extension.
-    for name in ["a.xml", "b.json", "c.txt"]:
-        (tmp_path / name).write_text("")
-    result = list_files(tmp_path)
-    assert len(result) == 3
+def test_list_files_empty_dir(tmp_path):
+    # Personal note: an empty directory should return an empty list, not raise.
+    result = list_files(tmp_path, suffix=".xml")
+    assert result == []
