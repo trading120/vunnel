@@ -80,8 +80,7 @@ def test_get_raises_on_404():
     # 404 Not Found should NOT be retried - it's a client error, not transient.
     # Retrying 404s would just waste time and add unnecessary load to the server.
     bad = MagicMock(spec=requests.Response)
-    # NOTE: status_code=404 here; if the impl ever starts retrying 4xx errors
-    # (other than 429), this test should catch that regression.
+    bad.status_code = 404
     bad.raise_for_status.side_effect = requests.HTTPError(response=MagicMock(status_code=404))
 
     with patch("requests.get", return_value=bad) as mock_get:
