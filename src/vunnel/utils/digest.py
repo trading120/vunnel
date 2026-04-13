@@ -105,4 +105,6 @@ def md5(data: bytes | str) -> str:
     """
     if isinstance(data, str):
         data = data.encode("utf-8")
-    return hashlib.md5(data).hexdigest()  # noqa: S324
+    # usedforsecurity=False signals to Python (and linters) that we know MD5
+    # is not being used for any cryptographic/security purpose here.
+    return hashlib.md5(data, usedforsecurity=False).hexdigest()
