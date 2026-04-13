@@ -98,6 +98,7 @@ def test_list_files_filters_by_suffix(tmp_path):
     (tmp_path / "data.xml").write_text("")
     (tmp_path / "data.json").write_text("")
     result = list_files(tmp_path, suffix=".xml")
+    # only .xml files should be returned; .json should be excluded
     assert len(result) == 1
     assert result[0].name == "data.xml"
 
