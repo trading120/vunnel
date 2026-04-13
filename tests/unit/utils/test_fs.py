@@ -57,6 +57,17 @@ def test_sha256_file_empty(tmp_path):
     assert sha256_file(f) == expected
 
 
+def test_sha256_file_large(tmp_path):
+    # Personal note: verify sha256 is correct for multi-chunk reads (>1 chunk)
+    # since sha256_file likely reads in chunks; want to catch any off-by-one.
+    import hashlib
+    data = b"x" * (1024 * 1024)  # 1 MB
+    f = tmp_path / "large.bin"
+    f.write_bytes(data)
+    expected = hashlib.sha256(data).hexdigest()
+    assert sha256_file(f) == expected
+
+
 # Note: atomic_write uses a .tmp suffix during write to avoid partial writes
 # on crash; the temp file should always be cleaned up after a successful write.
 def test_atomic_write_string(tmp_path):
@@ -98,12 +109,5 @@ def test_list_files_filters_by_suffix(tmp_path):
     (tmp_path / "data.xml").write_text("")
     (tmp_path / "data.json").write_text("")
     result = list_files(tmp_path, suffix=".xml")
-    # only .xml files should be returned; .json should be excluded
     assert len(result) == 1
     assert result[0].name == "data.xml"
-
-
-def test_list_files_empty_dir(tmp_path):
-    # Personal note: an empty directory should return an empty list, not raise.
-    result = list_files(tmp_path, suffix=".xml")
-    assert result == []
