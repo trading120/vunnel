@@ -90,14 +90,14 @@ def list_directory(
 
     Returns:
         A list of filenames in the remote directory.
+        Note: returns only bare filenames, not full paths.
     """
     log.debug("ftp list: ftp://%s%s", host, path)
     with ftplib.FTP(timeout=timeout) as ftp:
         ftp.connect(host)
         ftp.login(user=user, passwd=password)
         ftp.set_pasv(True)
-        # Use nlst() to get a plain list of names; mlsd() would give more detail
-        # but isn't supported by all servers.
+        # nlst() returns just filenames; use ftp.dir() if you need full metadata
         entries = ftp.nlst(path)
-        # Return only the base filenames, not the full paths
+        # Strip directory prefix so callers always get bare filenames
         return [os.path.basename(e) for e in entries]
