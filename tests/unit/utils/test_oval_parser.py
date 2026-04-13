@@ -89,7 +89,6 @@ def test_parse_handles_missing_advisory():
 
 def test_parse_invalid_xml_raises_value_error():
     # Malformed XML should raise a ValueError with a helpful message.
-    # Note: we intentionally do NOT use pytest.raises as a context manager here
-    # so that a missing exception gives a clearer failure message.
+    # Note: using pytest.raises as a context manager is cleaner than try/except here.
     with pytest.raises(ValueError, match="Failed to parse OVAL XML"):
         parse_oval_string("<not valid xml")
